@@ -63,6 +63,7 @@ type GameEvent =
  */
 const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const inputK = document.getElementById("k")! as HTMLInputElement;
+const buttonRnd = document.getElementById("rnd")! as HTMLButtonElement;
 
 let k: number = Number.parseInt(inputK.value) | 3;
 let field: number[][] = [];
@@ -85,6 +86,45 @@ const evtQueue: GameEvent[] = [];
 /*
  * browser event handlers
  */
+buttonRnd.onclick = () => {
+  // find empty fields
+  const emptyFields: Point[] = [];
+  for (let r = 0; r < field.length; r++) {
+    for (let c = 0; c < field[r].length; c++) {
+      if (!field[r][c]) {
+        emptyFields.push({ x: c, y: r });
+      }
+    }
+  }
+  // randomly choose empty field
+  if (emptyFields && emptyFields.length > 0) {
+    const randomEmptyFieldIdx = Math.floor(Math.random() * emptyFields.length);
+    const randomEmptyFieldCoords = emptyFields[randomEmptyFieldIdx];
+
+    // randomly choose 4 or 2
+    const choice: number[] = [4, 2];
+    const chosen = choice[Math.floor(Math.random() * choice.length)];
+    switch (chosen) {
+      case 2:
+        evtQueue.push({
+          kind: "setTwo",
+          row: randomEmptyFieldCoords.y,
+          col: randomEmptyFieldCoords.x,
+        });
+        break;
+      case 4:
+        evtQueue.push({
+          kind: "setFour",
+          row: randomEmptyFieldCoords.y,
+          col: randomEmptyFieldCoords.x,
+        });
+        break;
+      default:
+        console.error(`something wrong, unexpected value ${chosen}`);
+    }
+    // issue set event
+  }
+};
 inputK.onchange = (e: Event) => {
   const target = e.target as HTMLInputElement;
   if (target.value) {
@@ -267,7 +307,6 @@ function update(_dt: number) {
   for (let evt = evtQueue.pop(); evt; evt = evtQueue.pop()) {
     switch (evt.kind) {
       case "setFour":
-        console.log(`èvent ${evt.row},${evt.col}`);
         if (field[evt.row][evt.col] === 0) {
           field[evt.row][evt.col] = 4;
         }

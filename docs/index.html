@@ -5,14 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
-    <script type="module" crossorigin src="/game2048/assets/index-75Tsczq8.js"></script>
+    <script type="module" crossorigin src="/game2048/assets/index-8XMarbSw.js"></script>
     <link rel="stylesheet" crossorigin href="/game2048/assets/index-s-MxoWxy.css">
   </head>
   <body>
     <div id="app">
-      <div class="card">
-        <label for="k">Enter k (number of rows/columns)</label>
-        <input id="k" value="3" type="number" min="1" max="9" step="1" />
+      <div>
+        <div>
+          <label for="k">Enter k (number of rows/columns)</label>
+          <input id="k" value="3" type="number" min="1" max="9" step="1" />
+        </div>
+        <div>
+          <button id="rnd">draw random</button>
+        </div>
       </div>
       <canvas
         id="canvas"
