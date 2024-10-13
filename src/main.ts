@@ -1,22 +1,8 @@
 import "./style.css";
 
-const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
-
-const k: number = 3;
-const field: number[][] = [];
-
-for (let i = 0; i < k; i++) {
-  field.push([]);
-  for (let j = 0; j < k; j++) {
-    field[i].push(0);
-  }
-}
-
-const buttonsConfig = {
-  vertButtonWidth: 50,
-  horzButtonHeigth: 50,
-};
-
+/*
+ * types
+ */
 interface Point {
   x: number;
   y: number;
@@ -37,94 +23,7 @@ interface PlayField {
   field: Rect[][]; //[row][col]
 }
 
-const playField: PlayField = {
-  topButtonRow: [],
-  bottomButtonRow: [],
-  leftButtonCol: [],
-  rightButtonCol: [],
-  field: [],
-};
-
-let topRowStart: Point = { x: buttonsConfig.vertButtonWidth, y: 0 };
-let bottomRowStart: Point = {
-  x: buttonsConfig.vertButtonWidth,
-  y:
-    buttonsConfig.horzButtonHeigth +
-    canvas.height -
-    2 * buttonsConfig.horzButtonHeigth,
-};
-let rowStride = (1 / k) * (canvas.width - 2 * buttonsConfig.vertButtonWidth);
-for (let r = 0; r < k; r++) {
-  let x = topRowStart.x + r * rowStride;
-  let y = topRowStart.y;
-  let topButton = {
-    x: x,
-    y: y,
-    w: rowStride,
-    h: buttonsConfig.horzButtonHeigth,
-  };
-  playField.topButtonRow.push(topButton);
-  x = bottomRowStart.x + r * rowStride;
-  y = bottomRowStart.y;
-  let bottomButton = {
-    x: x,
-    y: y,
-    w: rowStride,
-    h: buttonsConfig.horzButtonHeigth,
-  };
-  playField.bottomButtonRow.push(bottomButton);
-}
-
-let leftButtonColStart: Point = { x: 0, y: buttonsConfig.horzButtonHeigth };
-let rightButtonColStart: Point = {
-  x:
-    buttonsConfig.vertButtonWidth +
-    canvas.width -
-    2 * buttonsConfig.vertButtonWidth,
-  y: buttonsConfig.horzButtonHeigth,
-};
-let colStride = (1 / k) * (canvas.height - 2 * buttonsConfig.horzButtonHeigth);
-for (let c = 0; c < k; c++) {
-  let x = leftButtonColStart.x;
-  let y = leftButtonColStart.y + c * colStride;
-  let leftButton = {
-    x: x,
-    y: y,
-    w: buttonsConfig.vertButtonWidth,
-    h: colStride,
-  };
-  playField.leftButtonCol.push(leftButton);
-  x = rightButtonColStart.x;
-  y = rightButtonColStart.y + c * colStride;
-  let rightButton = {
-    x: x,
-    y: y,
-    w: buttonsConfig.vertButtonWidth,
-    h: colStride,
-  };
-  playField.rightButtonCol.push(rightButton);
-}
-let fieldStart: Point = {
-  x: buttonsConfig.vertButtonWidth,
-  y: buttonsConfig.horzButtonHeigth,
-};
-let fieldStride: Point = {
-  x: (1 / k) * (canvas.width - 2 * buttonsConfig.vertButtonWidth),
-  y: (1 / k) * (canvas.height - 2 * buttonsConfig.horzButtonHeigth),
-};
-for (let r = 0; r < k; r++) {
-  playField.field.push([]);
-  for (let c = 0; c < k; c++) {
-    playField.field[r].push({
-      x: fieldStart.x + c * fieldStride.x,
-      y: fieldStart.y + r * fieldStride.y,
-      w: fieldStride.x,
-      h: fieldStride.y,
-    });
-  }
-}
-
-type Event =
+type GameEvent =
   | {
       kind: "playLeft";
       row: number;
@@ -153,20 +52,49 @@ type Event =
     }
   | {
       kind: "restart";
+      k: number;
     }
   | {
       kind: "noop";
     };
 
-function isInRect(p: Point, r: Rect): boolean {
-  return r.x <= p.x && p.x <= r.x + r.w && r.y <= p.y && p.y <= r.y + r.h;
-}
+/*
+ * variables
+ */
+const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
+const inputK = document.getElementById("k")! as HTMLInputElement;
 
-const evtQueue: Event[] = [];
+let k: number = Number.parseInt(inputK.value) | 3;
+let field: number[][] = [];
 
+const buttonsConfig = {
+  vertButtonWidth: 50,
+  horzButtonHeigth: 50,
+};
+
+let playField: PlayField = {
+  topButtonRow: [],
+  bottomButtonRow: [],
+  leftButtonCol: [],
+  rightButtonCol: [],
+  field: [],
+};
+
+const evtQueue: GameEvent[] = [];
+
+/*
+ * browser event handlers
+ */
+inputK.onchange = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  if (target.value) {
+    const newK = Number.parseInt(target.value);
+    evtQueue.push({ kind: "restart", k: newK });
+  }
+};
 canvas.onmouseup = (e: MouseEvent) => {
   const p = { x: e.offsetX, y: e.offsetY };
-  let evt: Event | undefined = undefined;
+  let evt: GameEvent | undefined = undefined;
   for (let i = 0; i < playField.topButtonRow.length; i++) {
     if (isInRect(p, playField.topButtonRow[i])) {
       evt = { kind: "playUp", col: i };
@@ -221,10 +149,119 @@ canvas.onmouseup = (e: MouseEvent) => {
   }
 };
 
+/*
+ * main program
+ */
+reset(k);
 requestAnimationFrame((time) => {
   const lastTime = time;
   requestAnimationFrame((time) => loop(lastTime, time));
 });
+
+/*
+ * functions
+ */
+function reset(k: number) {
+  field = [];
+  playField = {
+    topButtonRow: [],
+    bottomButtonRow: [],
+    leftButtonCol: [],
+    rightButtonCol: [],
+    field: [],
+  };
+
+  for (let i = 0; i < k; i++) {
+    field.push([]);
+    for (let j = 0; j < k; j++) {
+      field[i].push(0);
+    }
+  }
+
+  let topRowStart: Point = { x: buttonsConfig.vertButtonWidth, y: 0 };
+  let bottomRowStart: Point = {
+    x: buttonsConfig.vertButtonWidth,
+    y:
+      buttonsConfig.horzButtonHeigth +
+      canvas.height -
+      2 * buttonsConfig.horzButtonHeigth,
+  };
+  let rowStride = (1 / k) * (canvas.width - 2 * buttonsConfig.vertButtonWidth);
+  for (let r = 0; r < k; r++) {
+    let x = topRowStart.x + r * rowStride;
+    let y = topRowStart.y;
+    let topButton = {
+      x: x,
+      y: y,
+      w: rowStride,
+      h: buttonsConfig.horzButtonHeigth,
+    };
+    playField.topButtonRow.push(topButton);
+    x = bottomRowStart.x + r * rowStride;
+    y = bottomRowStart.y;
+    let bottomButton = {
+      x: x,
+      y: y,
+      w: rowStride,
+      h: buttonsConfig.horzButtonHeigth,
+    };
+    playField.bottomButtonRow.push(bottomButton);
+  }
+
+  let leftButtonColStart: Point = { x: 0, y: buttonsConfig.horzButtonHeigth };
+  let rightButtonColStart: Point = {
+    x:
+      buttonsConfig.vertButtonWidth +
+      canvas.width -
+      2 * buttonsConfig.vertButtonWidth,
+    y: buttonsConfig.horzButtonHeigth,
+  };
+  let colStride =
+    (1 / k) * (canvas.height - 2 * buttonsConfig.horzButtonHeigth);
+  for (let c = 0; c < k; c++) {
+    let x = leftButtonColStart.x;
+    let y = leftButtonColStart.y + c * colStride;
+    let leftButton = {
+      x: x,
+      y: y,
+      w: buttonsConfig.vertButtonWidth,
+      h: colStride,
+    };
+    playField.leftButtonCol.push(leftButton);
+    x = rightButtonColStart.x;
+    y = rightButtonColStart.y + c * colStride;
+    let rightButton = {
+      x: x,
+      y: y,
+      w: buttonsConfig.vertButtonWidth,
+      h: colStride,
+    };
+    playField.rightButtonCol.push(rightButton);
+  }
+  let fieldStart: Point = {
+    x: buttonsConfig.vertButtonWidth,
+    y: buttonsConfig.horzButtonHeigth,
+  };
+  let fieldStride: Point = {
+    x: (1 / k) * (canvas.width - 2 * buttonsConfig.vertButtonWidth),
+    y: (1 / k) * (canvas.height - 2 * buttonsConfig.horzButtonHeigth),
+  };
+  for (let r = 0; r < k; r++) {
+    playField.field.push([]);
+    for (let c = 0; c < k; c++) {
+      playField.field[r].push({
+        x: fieldStart.x + c * fieldStride.x,
+        y: fieldStart.y + r * fieldStride.y,
+        w: fieldStride.x,
+        h: fieldStride.y,
+      });
+    }
+  }
+}
+
+function isInRect(p: Point, r: Rect): boolean {
+  return r.x <= p.x && p.x <= r.x + r.w && r.y <= p.y && p.y <= r.y + r.h;
+}
 
 function update(_dt: number) {
   for (let evt = evtQueue.pop(); evt; evt = evtQueue.pop()) {
@@ -300,6 +337,10 @@ function update(_dt: number) {
           }
         }
         break;
+      case "restart": {
+        k = evt.k;
+        reset(k);
+      }
     }
   }
 }

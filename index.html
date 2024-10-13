@@ -10,7 +10,7 @@
     <div id="app">
       <div class="card">
         <label for="k">Enter k (number of rows/columns)</label>
-        <input id="k" value="3" onchange="changek()" />
+        <input id="k" value="3" type="number" min="1" max="9" step="1" />
       </div>
       <canvas
         id="canvas"
