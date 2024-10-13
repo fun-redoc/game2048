@@ -8,6 +8,10 @@
   </head>
   <body>
     <div id="app">
+      <div class="card">
+        <label for="k">Enter k (number of rows/columns)</label>
+        <input id="k" value="3" onchange="changek()" />
+      </div>
       <canvas
         id="canvas"
         width="400"
@@ -15,6 +19,6 @@
         oncontextmenu="return false;"
       />
     </div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="src/main.ts"></script>
   </body>
 </html>

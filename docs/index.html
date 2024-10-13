@@ -5,10 +5,21 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
-    <script type="module" crossorigin src="assets/index-AfmvCcDB.js"></script>
-    <link rel="stylesheet" href="assets/index-s-MxoWxy.css" />
+    <script type="module" crossorigin src="/assets/index-AfmvCcDB.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-s-MxoWxy.css">
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="card">
+        <label for="k">Enter k (number of rows/columns)</label>
+        <input id="k" value="3" onchange="changek()" />
+      </div>
+      <canvas
+        id="canvas"
+        width="400"
+        height="400"
+        oncontextmenu="return false;"
+      />
+    </div>
   </body>
 </html>
