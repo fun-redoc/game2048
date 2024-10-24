@@ -462,8 +462,6 @@ function render_new() {
     }
   }
   ctx.restore();
-
-  ctx.restore();
 }
 
 function loop(lastTime: number, time: number) {
